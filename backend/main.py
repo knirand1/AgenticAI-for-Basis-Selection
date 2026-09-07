@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List
+from datetime import datetime
 
 from agent import analyze
 
@@ -39,6 +40,11 @@ def health_check():
     return {"status": "ok", "message": "Basis-Selection Agent API is running."}
 
 
+@app.get("/ping")
+def ping():
+    return {"datetime": datetime.now().isoformat()}
+
+
 @app.post("/analyze")
 def analyze_endpoint(req: AnalyzeRequest):
     if len(req.x) != len(req.y):
@@ -48,7 +54,11 @@ def analyze_endpoint(req: AnalyzeRequest):
 
     try:
         result = analyze(req.x, req.y)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {e}")
 
     return result
+
+
