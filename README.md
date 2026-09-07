@@ -1,6 +1,10 @@
+
 # Basis-Selection Agent
 
 A small "agentic" data-analysis tool: given a set of noisy `(x, y)` observations, it automatically fits several different curve-fitting basis families, scores each one statistically, picks the best fit, and writes a plain-English explanation of why. It ships as a Python/FastAPI backend plus two independent frontends that call it.
+
+# Preview can be seen at:# 
+## https://basis-selection-frontend.vercel.app
 
 ## 1. Project overview
 
