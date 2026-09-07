@@ -1,0 +1,43 @@
+# ============================================================
+# Backend (Python / FastAPI) — backend/
+# ============================================================
+backend/venv/
+venv/
+env/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+
+# ============================================================
+# Frontend (Next.js / TypeScript) — frontend/
+# ============================================================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.turbo/
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# Local env files (real secrets/overrides) — keep the checked-in .env.local.example
+frontend/.env*.local
+!frontend/.env.local.example
+
+# ============================================================
+# OS / editor noise (repo-wide)
+# ============================================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

@@ -23,7 +23,15 @@ def _fit_and_score(X_design, y):
     trace_H = np.trace(H)
 
     rss = np.sum((y - y_hat) ** 2)
-    gcv = (n * rss) / (n - trace_H) ** 2 if n > trace_H else np.inf
+    if n <= trace_H:
+        raise ValueError(
+            f"Degrees of freedom exhausted (n={n}, trace(H)={trace_H:.2f}); "
+            "cannot compute a finite GCV score for this basis."
+        )
+    gcv = (n * rss) / (n - trace_H) ** 2
+
+    if not np.isfinite(gcv):
+        raise ValueError("GCV score is not finite for this basis configuration.")
 
     return coefs, y_hat, gcv
 
@@ -32,6 +40,12 @@ def fit_bspline(x, y, n_knots=10, degree=3):
     knots = np.linspace(x.min(), x.max(), n_knots)
     knots = np.r_[[knots[0]] * degree, knots, [knots[-1]] * degree]
     n_basis = len(knots) - degree - 1
+
+    if n_basis >= len(x):
+        raise ValueError(
+            f"B-spline with n_knots={n_knots} needs {n_basis} basis functions, "
+            f"but only {len(x)} observations were provided."
+        )
 
     X_design = np.zeros((len(x), n_basis))
     for i in range(n_basis):
@@ -45,7 +59,13 @@ def fit_bspline(x, y, n_knots=10, degree=3):
 
 
 def fit_fourier(x, y, n_harmonics=8):
-    X_design = np.ones((len(x), 2 * n_harmonics + 1))
+    n_basis = 2 * n_harmonics + 1
+    if n_basis >= len(x):
+        raise ValueError(
+            f"Fourier with n_harmonics={n_harmonics} needs {n_basis} basis functions, "
+            f"but only {len(x)} observations were provided."
+        )
+    X_design = np.ones((len(x), n_basis))
     for k in range(1, n_harmonics + 1):
         X_design[:, 2 * k - 1] = np.sin(2 * np.pi * k * x)
         X_design[:, 2 * k] = np.cos(2 * np.pi * k * x)
@@ -55,6 +75,12 @@ def fit_fourier(x, y, n_harmonics=8):
 
 
 def fit_gaussian_rbf(x, y, n_centers=10, bandwidth=0.1):
+    n_basis = n_centers + 1
+    if n_basis >= len(x):
+        raise ValueError(
+            f"Gaussian RBF with n_centers={n_centers} needs {n_basis} basis functions, "
+            f"but only {len(x)} observations were provided."
+        )
     centers = np.linspace(x.min(), x.max(), n_centers)
     X_design = np.exp(-((x[:, None] - centers[None, :]) ** 2) / (2 * bandwidth ** 2))
     X_design = np.c_[np.ones(len(x)), X_design]
@@ -85,6 +111,12 @@ def select_best_basis(x, y):
             candidates.append(fit_gaussian_rbf(x, y, bandwidth=bandwidth))
         except Exception:
             continue
+
+    if not candidates:
+        raise ValueError(
+            "No basis family could be fit with the given number of observations. "
+            "Try providing more data points (at least ~20 is recommended)."
+        )
 
     best = min(candidates, key=lambda c: c["gcv"])
 
